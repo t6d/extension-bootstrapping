@@ -1,1 +1,1 @@
-{{render "data/package.json"}}
+{{template "package.json" .}}
