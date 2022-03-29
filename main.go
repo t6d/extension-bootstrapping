@@ -5,12 +5,15 @@ import (
 	"io/fs"
 	"os"
 	"strings"
+	"text/template"
 )
 
 //go:embed templates/*
 var templates embed.FS
 
 func main() {
+	config := Config{"test-project"}
+
 	source_directory := "templates/project"
 	target_directory := "tmp"
 
@@ -22,11 +25,39 @@ func main() {
 				panic(err)
 			}
 		} else {
-			data, _ := templates.ReadFile(source)
-			file, _ := os.Create(target)
-			file.Write(data)
-			file.Close()
+			data, err := templates.ReadFile(source)
+			if err != nil {
+				panic(err)
+			}
+
+			t := template.New(source)
+			t.Funcs(helpers)
+
+			if _, err := t.Parse(string(data)); err != nil {
+				panic(err)
+			}
+
+			file, err := os.Create(target)
+			if err != nil {
+				panic(err)
+			}
+			defer file.Close()
+
+			if err := t.Execute(file, config); err != nil {
+				panic(err)
+			}
 		}
+
 		return nil
 	})
+}
+
+type Config struct {
+	Name string
+}
+
+var helpers template.FuncMap = template.FuncMap{
+	"render": func(path string) string {
+		return path
+	},
 }
