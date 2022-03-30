@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 //go:embed templates/*
@@ -27,7 +28,7 @@ func main() {
 	t := createTemplateEngine(shared, config)
 
 	fs.WalkDir(project, ".", func(source string, d fs.DirEntry, err error) error {
-		target := filepath.Join("tmp", source)
+		target := filepath.Join(append([]string{"tmp"}, strings.Split(source, "/")...)...)
 		fmt.Printf("Creating %s\n", target)
 
 		if d.IsDir() {
