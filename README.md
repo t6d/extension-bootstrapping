@@ -26,4 +26,28 @@ To create the example project, simply run
 go run .
 ```
 
-It will create a `tmp/` directory that has the exact same structure as `templates/project/`.
+It will create a `tmp/` directory that has the exact same structure as `templates/project/`:
+
+```
+tmp/
+├── extension.config.yml
+├── package.json
+└── src
+    └── index.js
+```
+
+## Outstanding Work
+
+- Support for multiple project types
+- Extract template engine behavior into its own type
+
+  ```go
+  type TemplateEngine struct {
+  	shared fs.FS
+  	projects fs.FS
+  	config Config
+  	t *template.Template
+  }
+
+  func (engine *TemplateEngine) CreateProject(type string, func skip(path string) bool)
+  ```
