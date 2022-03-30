@@ -24,7 +24,7 @@ func main() {
 		panic(err)
 	}
 
-	t := createTemplateEngine(shared)
+	t := createTemplateEngine(shared, config)
 
 	fs.WalkDir(project, ".", func(source string, d fs.DirEntry, err error) error {
 		target := filepath.Join("tmp", source)
