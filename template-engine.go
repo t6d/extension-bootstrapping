@@ -31,10 +31,8 @@ func helpers(t *template.Template, config Config, shared fs.FS) template.FuncMap
 			fragments := make([]fragment, 0, len(paths))
 
 			for _, path := range paths {
-				rawData, _ := fs.ReadFile(shared, strings.TrimPrefix(path, "shared/"))
-
 				buffer := bytes.Buffer{}
-				template.Must(t.New("").Parse(string(rawData))).Execute(&buffer, config)
+				t.ExecuteTemplate(&buffer, path, config)
 
 				fragment := make(fragment)
 				yaml.Unmarshal(buffer.Bytes(), fragment)
@@ -46,7 +44,7 @@ func helpers(t *template.Template, config Config, shared fs.FS) template.FuncMap
 				result = mergeFragments(result, fragment)
 			}
 			serializedResult, _ := yaml.Marshal(result)
-			return string(serializedResult)
+			return strings.TrimSpace(string(serializedResult))
 		},
 	}
 }

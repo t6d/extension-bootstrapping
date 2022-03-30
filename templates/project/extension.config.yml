@@ -1,1 +1,5 @@
-{{merge "shared/extension.config.yml" "shared/admin_extension/extension.config.yml"}}
+{{define "local/extension.config.yml"}}
+metafields:
+  key: value
+{{end}}
+{{merge "shared/extension.config.yml" "shared/admin_extension/extension.config.yml" "local/extension.config.yml"}}
