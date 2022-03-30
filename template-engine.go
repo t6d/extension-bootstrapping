@@ -8,8 +8,8 @@ import (
 )
 
 func createTemplateEngine(shared fs.FS) *template.Template {
-	t := template.Template{}
-	t.Funcs(helpers(shared))
+	t := &template.Template{}
+	t.Funcs(helpers(t, shared))
 
 	fs.WalkDir(shared, ".", func(path string, d fs.DirEntry, err error) error {
 		if !d.IsDir() {
@@ -20,10 +20,10 @@ func createTemplateEngine(shared fs.FS) *template.Template {
 		return nil
 	})
 
-	return &t
+	return t
 }
 
-func helpers(shared fs.FS) template.FuncMap {
+func helpers(t *template.Template, shared fs.FS) template.FuncMap {
 	return template.FuncMap{
 		"merge": func(paths ...string) string {
 			buffer := bytes.Buffer{}
@@ -33,7 +33,9 @@ func helpers(shared fs.FS) template.FuncMap {
 				buffer.Write(data)
 			}
 
-			return string(buffer.Bytes())
+			builder := strings.Builder{}
+			template.Must(t.New("").Parse(string(buffer.Bytes()))).Execute(&builder, Config{"Foo"})
+			return builder.String()
 		},
 	}
 }
