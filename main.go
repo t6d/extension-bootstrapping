@@ -2,11 +2,10 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	"io/fs"
 	"os"
-	"path"
-	"strings"
-	"text/template"
+	"path/filepath"
 )
 
 //go:embed templates/*
@@ -15,20 +14,28 @@ var templates embed.FS
 func main() {
 	config := Config{"test-project"}
 
-	sourceDirectory := "templates/project"
-	targetDirectory := "tmp"
+	shared, err := fs.Sub(templates, "templates/shared")
+	if err != nil {
+		panic(err)
+	}
 
-	t := createTemplateEngine()
+	project, err := fs.Sub(templates, "templates/project")
+	if err != nil {
+		panic(err)
+	}
 
-	fs.WalkDir(templates, sourceDirectory, func(source string, d fs.DirEntry, err error) error {
-		target := strings.Replace(source, sourceDirectory, targetDirectory, 1)
+	t := createTemplateEngine(shared)
+
+	fs.WalkDir(project, ".", func(source string, d fs.DirEntry, err error) error {
+		target := filepath.Join("tmp", source)
+		fmt.Printf("Creating %s\n", target)
 
 		if d.IsDir() {
-			if err := os.Mkdir(target, 0755); !os.IsExist(err) {
+			if err := os.Mkdir(target, 0755); err != nil && !os.IsExist(err) {
 				panic(err)
 			}
 		} else {
-			data, err := templates.ReadFile(source)
+			data, err := fs.ReadFile(project, source)
 			if err != nil {
 				panic(err)
 			}
@@ -52,25 +59,6 @@ func main() {
 	})
 }
 
-func createTemplateEngine() (t template.Template) {
-	if _, err := t.ParseFS(templates, "templates/data/*"); err != nil {
-		panic(err)
-	}
-	t.Funcs(helpers)
-
-	return
-}
-
 type Config struct {
 	Name string
-}
-
-var helpers template.FuncMap = template.FuncMap{
-	"render": func(templatePath string) string {
-		data, err := templates.ReadFile(path.Join("templates", templatePath))
-		if err != nil {
-			panic(err)
-		}
-		return string(data)
-	},
 }
